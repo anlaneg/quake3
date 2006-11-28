@@ -100,18 +100,6 @@ ifndef USE_OPENAL_DLOPEN
 USE_OPENAL_DLOPEN=0
 endif
 
-ifndef USE_CURL
-USE_CURL=1
-endif
-
-ifndef USE_CURL_DLOPEN
-  ifeq ($(PLATFORM),mingw32)
-    USE_CURL_DLOPEN=0
-  else
-    USE_CURL_DLOPEN=1
-  endif
-endif
-
 ifndef USE_CODEC_VORBIS
 USE_CODEC_VORBIS=0
 endif
@@ -146,14 +134,7 @@ LIBSDIR=$(MOUNT_DIR)/libs
 VERSION=$(shell grep "\#define Q3_VERSION" $(CMDIR)/q_shared.h | \
   sed -e 's/.*".* \([^ ]*\)"/\1/')
 
-USE_SVN=
-ifeq ($(wildcard .svn),.svn)
-  SVN_REV=$(shell LANG=C svnversion .)
-  ifneq ($(SVN_REV),)
-    SVN_VERSION=$(VERSION)_SVN$(SVN_REV)
-    USE_SVN=1
-  endif
-endif
+USE_SVN=0
 ifneq ($(USE_SVN),1)
     SVN_VERSION=$(VERSION)
 endif
@@ -197,13 +178,6 @@ ifeq ($(PLATFORM),linux)
     BASE_CFLAGS += -DUSE_OPENAL=1
     ifeq ($(USE_OPENAL_DLOPEN),1)
       BASE_CFLAGS += -DUSE_OPENAL_DLOPEN=1
-    endif
-  endif
-  
-  ifeq ($(USE_CURL),1)
-    BASE_CFLAGS += -DUSE_CURL=1
-    ifeq ($(USE_CURL_DLOPEN),1)
-      BASE_CFLAGS += -DUSE_CURL_DLOPEN=1
     endif
   endif
 
@@ -266,12 +240,6 @@ ifeq ($(PLATFORM),linux)
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
       CLIENT_LDFLAGS += -lopenal
-    endif
-  endif
-  
-  ifeq ($(USE_CURL),1)
-    ifneq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LDFLAGS += -lcurl
     endif
   endif
 
@@ -373,15 +341,6 @@ ifeq ($(PLATFORM),darwin)
       BASE_CFLAGS += -DUSE_OPENAL_DLOPEN=1
     endif
   endif
-  
-  ifeq ($(USE_CURL),1)
-    BASE_CFLAGS += -DUSE_CURL=1
-    ifneq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LDFLAGS += -lcurl
-    else
-      BASE_CFLAGS += -DUSE_CURL_DLOPEN=1
-    endif
-  endif
 
   ifeq ($(USE_CODEC_VORBIS),1)
     BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
@@ -438,13 +397,6 @@ ifeq ($(PLATFORM),mingw32)
   ifeq ($(USE_OPENAL),1)
     BASE_CFLAGS += -DUSE_OPENAL=1 -DUSE_OPENAL_DLOPEN=1
   endif
-  
-  ifeq ($(USE_CURL),1)
-    BASE_CFLAGS += -DUSE_CURL=1
-    ifneq ($(USE_CURL_DLOPEN),1)
-      BASE_CFLAGS += -DCURL_STATICLIB
-    endif
-  endif
 
   ifeq ($(USE_CODEC_VORBIS),1)
     BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
@@ -470,12 +422,6 @@ ifeq ($(PLATFORM),mingw32)
 
   LDFLAGS= -mwindows -lwsock32 -lgdi32 -lwinmm -lole32
   CLIENT_LDFLAGS=
-
-  ifeq ($(USE_CURL),1)
-    ifneq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LDFLAGS += $(LIBSDIR)/win32/libcurl.a
-    endif
-  endif
 
   ifeq ($(USE_CODEC_VORBIS),1)
     CLIENT_LDFLAGS += -lvorbisfile -lvorbis -logg
@@ -894,8 +840,6 @@ Q3OBJ = \
   $(B)/client/qal.o \
   $(B)/client/snd_openal.o \
   \
-  $(B)/client/cl_curl.o \
-  \
   $(B)/client/sv_bot.o \
   $(B)/client/sv_ccmds.o \
   $(B)/client/sv_client.o \
@@ -1115,8 +1059,6 @@ $(B)/client/snd_codec_ogg.o : $(CDIR)/snd_codec_ogg.c; $(DO_CC)
 
 $(B)/client/qal.o : $(CDIR)/qal.c; $(DO_CC)
 $(B)/client/snd_openal.o : $(CDIR)/snd_openal.c; $(DO_CC)
-
-$(B)/client/cl_curl.o : $(CDIR)/cl_curl.c; $(DO_CC)
 
 $(B)/client/sv_bot.o : $(SDIR)/sv_bot.c; $(DO_CC)
 $(B)/client/sv_client.o : $(SDIR)/sv_client.c; $(DO_CC)
